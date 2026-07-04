@@ -88,8 +88,15 @@
   }
   .navlinks a.active:hover{color:#fff;}
   @media(max-width:680px){
-    .navlinks{gap:4px;}
-    .navlinks a:not(.active){display:none;}
+    nav .wrap{justify-content:space-between;gap:10px;padding:0 16px;}
+    .navlinks{
+      flex:1;min-width:0;gap:4px;overflow-x:auto;
+      -webkit-overflow-scrolling:touch;scrollbar-width:none;
+      -webkit-mask-image:linear-gradient(to right,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);
+      mask-image:linear-gradient(to right,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);
+    }
+    .navlinks::-webkit-scrollbar{display:none;}
+    .navlinks a{flex:0 0 auto;white-space:nowrap;padding:5px 11px;}
   }
 
   /* lang toggle */
@@ -128,17 +135,16 @@
   }
 
   .lead-grid{
-    display:grid;grid-template-columns:1.4fr 1fr;gap:48px;
     margin-top:64px;padding-top:42px;border-top:1px solid var(--line);
   }
-  .lead-grid p{margin:0;font-size:1.22rem;line-height:1.62;color:var(--ink);}
+  .lead-grid p{margin:0;font-size:1.22rem;line-height:1.62;color:var(--ink);max-width:62ch;}
   blockquote.pull{
     margin:0;font-family:var(--display);font-weight:300;
     font-size:1.5rem;line-height:1.34;font-style:italic;
     color:var(--vermillion-deep);
     border-left:2px solid var(--vermillion);padding-left:22px;
   }
-  @media(max-width:760px){.lead-grid{grid-template-columns:1fr;gap:30px;}}
+  @media(max-width:760px){.lead-grid{margin-top:44px;padding-top:30px;}}
 
   /* ---------- section frame ---------- */
   section.band{padding:88px 0;position:relative;}
@@ -161,6 +167,8 @@
   }
   .curve-scroll{overflow-x:auto;}
   .curve-svg{width:100%;min-width:720px;height:auto;display:block;}
+  .mk text.mk-num{font-family:var(--mono);font-weight:600;fill:#fff;pointer-events:none;}
+  .curve-legend{display:none;}
   .curve-svg text{font-family:var(--mono);fill:var(--ink-soft);}
   .stage-pct{font-size:11px;letter-spacing:.04em;}
   .stage-name{font-size:13px;font-weight:500;letter-spacing:.06em;}
@@ -248,11 +256,33 @@
   .bar-solid.full{border-radius:4px;}
   .bar-solid .bnum{font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;}
   .bar-fade{height:30px;border-radius:0 4px 4px 0;opacity:.26;}
+  .tl-scale{display:none;position:absolute;left:0;right:0;bottom:0;
+    justify-content:space-between;font-family:var(--mono);font-size:10px;
+    letter-spacing:.06em;color:var(--ink-faint);}
   @media(max-width:760px){
     .tl-row{grid-template-columns:1fr;gap:14px;}
     .tl-axis{display:none;}
-    .tl-track{height:54px;margin-top:6px;}
+    .tl-track{height:auto;min-height:60px;margin-top:6px;padding-bottom:18px;}
+    .tl-scale{display:flex;}
     .ax-play{display:none;}
+    /* let the whole bell fit the viewport instead of scrolling */
+    .curve-svg{min-width:0;}
+    .curve-shell{padding:22px 10px 18px;}
+  }
+  /* narrow phones: numbered dots + legend, scaled-up in-SVG text so the whole bell reads */
+  @media(max-width:560px){
+    .curve-svg .stage-name{font-size:21px;}
+    .curve-svg .stage-pct{font-size:20px;font-weight:600;}
+    .mk text.mk-num{font-size:19px;}
+    .axis-y{font-size:17px;}
+    .curve-legend{
+      display:grid;grid-template-columns:1fr 1fr;gap:9px 16px;
+      margin-top:20px;padding-top:18px;border-top:1px solid var(--line);
+      font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);
+    }
+    .cl-item{display:flex;align-items:center;gap:9px;min-width:0;}
+    .cl-dot{flex:0 0 auto;width:19px;height:19px;border-radius:50%;color:#fff;
+      font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;}
   }
 
   /* ---------- next: clickable index + featured detail ---------- */
@@ -394,7 +424,7 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="sec-num">01</span>
-      <h2 class="sec-title" data-l10n="curveTitle">One curve, eight bets</h2>
+      <h2 class="sec-title" data-l10n="curveTitle">One curve, eight shifts</h2>
     </div>
     <p class="sec-sub" data-l10n="curveSub">Everett Rogers split any new technology's audience into five groups by how soon they adopt. Plotting two decades of major ideas onto that curve shows something quietly useful: the newer the technology, the further left it sits. Today's frontier is yesterday's air we breathe.</p>
 
@@ -405,6 +435,7 @@
           <div class="curve-tip" id="curveTip"></div>
         </div>
       </div>
+      <div class="curve-legend" id="curveLegend" aria-hidden="true"></div>
       <div class="curve-key">
         <span data-l10n="curveKey1"><b>&#9679; Each dot</b> a technology, placed by how far it has spread</span>
         <span data-l10n="curveKey2"><b>Band %</b> that group's share of all adopters</span>
@@ -495,7 +526,7 @@ const L10N = {
     heroTitle:'The Technology <em>Adoption Curve,</em> Twenty Years On',
     heroDeck:"Two decades of software's biggest ideas, plotted from the frontier to the mainstream on the bell curve that explains how every technology spreads.",
     heroLead:"The same pattern repeats with every new technology: a handful of innovators try it first, early adopters follow, and the rest of the industry arrives only once it is proven. Watch where an idea sits on that curve and you can read its future.",
-    curveTitle:"One curve, eight bets",
+    curveTitle:"One curve, eight shifts",
     curveSub:"Everett Rogers split any new technology's audience into five groups by how soon they adopt. Plotting two decades of major ideas onto that curve shows something quietly useful: the newer the technology, the further left it sits. Today's frontier is yesterday's air we breathe.",
     curveKey1:"<b>&#9679; Each dot</b> a technology, placed by how far it has spread",
     curveKey2:"<b>Band %</b> that group's share of all adopters",
@@ -509,7 +540,7 @@ const L10N = {
     nextTitle:"What to watch next",
     nextSub:"AI engineering and agents are likely to follow the microservices arc: enthusiasm first, then a more honest reckoning. Five sub-threads are already forming underneath it. Pick one.",
     glTitle:"The field vocabulary",
-    glSub:"The working language a practitioner accumulates across these twenty years, with the canon worth reading behind each section. Search it, or filter by domain.",
+    glSub:"The working language a practitioner accumulates on the job, with the canon worth reading behind each section. Search it, or filter by domain.",
     glSearchPlaceholder:"search terms, e.g. idempotency, canary, JWT...",
     glEmpty:"No terms match that search.",
     sourceNote:'Based on the InfoQ 20th-anniversary retrospective <a href="https://www.infoq.com/articles/adoption-curve-twenty/" target="_blank" rel="noopener">"The Technology Adoption Curve, Twenty Years On"</a> by Renato Losio and Dio Synodinos (June 2026).',
@@ -529,24 +560,24 @@ const L10N = {
   zh: {
     langBtn:"EN",
     navCurve:"曲線", navTimeline:"時間線", navNext:"下一步", navGlossary:"詞彙表",
-    heroTitle:'<span style="display:block">技術</span><span style="display:block"><em>採用曲線</em></span><span style="display:block">二十年回首</span>',
-    heroDeck:"二十年來軟體界最重要的概念，從最前線到主流，畫在同一條鐘形曲線上——它解釋了每項技術如何擴散。",
+    heroTitle:'<span style="display:block">技術</span><span style="display:block"><em>採用曲線</em></span><span style="display:block">回首二十年</span>',
+    heroDeck:"二十年來軟體界最重要的概念，從最前線到主流，都畫在同一條鐘形曲線上，說明每項技術是怎麼擴散開來的。",
     heroLead:"每項新技術都重複同樣的模式：少數創新者先試，早期採用者跟上，其他人等到技術被驗證才進場。看一個點子在曲線上的位置，就能讀懂它的未來。",
-    curveTitle:"一條曲線，八個賭注",
+    curveTitle:"一條曲線，八場轉變",
     curveSub:"Everett Rogers 將新技術的採用者分為五個群體。把二十年來的主要技術浪潮畫在同一條曲線上，會發現一個低調但實用的規律：越新的技術越靠左。今天的最前線，是昨天我們呼吸的空氣。",
     curveKey1:"<b>&#9679; 每個點</b>代表一項技術，按擴散程度定位",
     curveKey2:"<b>區間 %</b> 該群體佔所有採用者的比例",
-    curveKey3:"<b>懸停查看</b>年份與階段",
+    curveKey3:"<b>滑鼠移過去</b>查看年份與階段",
     curveNoteL:"&larr; 最前線 &nbsp; 創新者與早期採用者",
     curveNoteR:"主流與退場 &nbsp; 落後者 &rarr;",
     tlTitle:"二十年，八個浪潮",
-    tlSub:"同一個時代序列用時間軸來排。實心條標記每個概念佔據討論焦點的年份，淡出部分是熱潮過後仍持續的影響力。",
+    tlSub:"同樣的年代，換成時間軸來看。實心的部分標記每個概念站上討論焦點的年份，淡出的尾巴則是熱潮退去後仍殘留的影響力。",
     tlAxisLabel:"浪潮 / 狀態",
     tlAxisSpan:"涵蓋範圍 &middot; 2006 &rarr; 2026",
     nextTitle:"下一步該看什麼",
-    nextSub:"AI 工程與 Agent 很可能會走微服務的老路：先有熱情，然後是更務實的面對。底下已經有五個子議題在成形，選一個深入研究。",
+    nextSub:"AI 工程與 Agent 很可能會重演微服務的劇本：先是一股熱情，之後才迎來比較誠實的反省。底下已經有五個子議題在成形，挑一個深入研究吧。",
     glTitle:"領域詞彙",
-    glSub:"從業者在這二十年間累積的工作語言，每個類別附上值得閱讀的經典文獻。可以搜尋，也可以用分類過濾。",
+    glSub:"從業者一路累積下來的工作語言，每個類別附上值得閱讀的經典文獻。可以搜尋，也可以用分類過濾。",
     glSearchPlaceholder:"搜尋詞彙，例如 idempotency、canary、JWT...",
     glEmpty:"沒有符合搜尋條件的詞彙。",
     sourceNote:'本文參考 InfoQ 二十週年回顧文章 <a href="https://www.infoq.com/articles/adoption-curve-twenty/" target="_blank" rel="noopener">"The Technology Adoption Curve, Twenty Years On"</a>，作者 Renato Losio 與 Dio Synodinos（2026 年 6 月）。',
@@ -580,7 +611,7 @@ const STAGES = {
 const ERAS = [
   {num:1,name:"Agile",start:2006,peakEnd:2009,present:true,z:1.45,stage:"lmaj",status:"Late majority → laggard",statusZh:"晚期大眾 → 落後者",
    desc:"A foundational shift in how teams work. It won so completely that the term lost its specificity. The late majority and laggards now treat it as the default way to work.",
-   descZh:"團隊運作方式的根本轉變。它贏得太徹底，以至於這個詞失去了原本的具體性。晚期大眾與落後者現在把它當作預設的工作方式。",
+   descZh:"團隊運作方式的根本轉變。它太成功了，成功到這個詞本身變得空泛，晚期大眾和落後者現在都把它當成預設的工作方式。",
    quote:"Agile and DevOps practices have become so integrated into industry standards that they are now the air that we breathe.",
    quoteZh:"敏捷與 DevOps 實務已深植於業界標準，成為我們呼吸的空氣。"},
   {num:2,name:"SOA",start:2006,peakEnd:2010,present:true,z:2.05,stage:"lag",status:"Laggard brand · living problem",statusZh:"落後者品牌 · 未解的問題",
@@ -590,11 +621,11 @@ const ERAS = [
    quoteZh:"SOA 這個名詞現在是落後者，但它描述的架構問題仍然是核心議題。"},
   {num:3,name:"Cloud",start:2008,peakEnd:2014,present:true,z:0.72,stage:"lmaj",status:"Late majority",statusZh:"晚期大眾",
    desc:"Coverage began as the platform shift took hold. The frontier has since moved on to FinOps, multi-region resilience, and sustainability.",
-   descZh:"隨著平台轉移站穩腳步，雲端覆蓋率開始成長。焦點已轉向 FinOps、多區域韌性與永續性。",
+   descZh:"隨著雲端這波平台轉移逐漸站穩，涵蓋率也跟著成長，焦點則轉向了 FinOps、多區域韌性與永續性。",
    quote:""},
   {num:4,name:"DevOps",start:2010,peakEnd:2016,present:true,z:0.25,stage:"lmaj",status:"Early → late majority",statusZh:"早期 → 晚期大眾",
    desc:"A cultural shift before it was a toolchain. It matured into platform engineering and product thinking about internal tooling.",
-   descZh:"在成為工具鏈之前，它首先是一場文化變革。後來成熟為平台工程與對內部工具的產品思維。",
+   descZh:"在成為工具鏈之前，它首先是一場文化變革，後來才成熟為平台工程，並發展出把內部工具當產品做的思維。",
    quote:""},
   {num:5,name:"Containers & Kubernetes",start:2014,peakEnd:2020,present:true,z:-0.1,stage:"emaj",status:"Early → late majority",statusZh:"早期 → 晚期大眾",
    desc:"Adoption moved faster here than almost anywhere. The conversation now runs to service mesh, eBPF, and edge computing.",
@@ -606,20 +637,26 @@ const ERAS = [
    quote:""},
   {num:7,name:"ML Engineering",start:2014,peakEnd:2021,present:true,z:-0.6,stage:"emaj",status:"Early majority",statusZh:"早期大眾",
    desc:"The shift from research notebooks to a production discipline. Integrating data is still the hard, unglamorous part.",
-   descZh:"從研究筆記本到生產紀律的轉變。整合資料仍然是困難且不討喜的部分。",
+   descZh:"從研究用的 Jupyter Notebook，走向講求紀律的正式生產環境。整合資料至今仍是困難又不討喜的一塊。",
    quote:"Building a production machine learning infrastructure has challenged practitioners since the early days.",
    quoteZh:"從早期開始，建構生產級機器學習基礎設施就一直考驗著從業者。"},
   {num:8,name:"AI Engineering & Agents",start:2023,peakEnd:2026,present:false,z:-2.4,stage:"innov",status:"Innovator / early adopter",statusZh:"創新者 / 早期採用者",
-   desc:"The current frontier: governance, voice agents, and multi-agent systems. It is likely to follow the microservices arc, enthusiasm first, then realism.",
-   descZh:"當前的焦點：治理、語音代理與多代理系統。很可能會走微服務的老路：先有熱情，然後是務實面對。",
+   desc:"The current frontier: governance, voice agents, and multi-agent systems. The engineering discipline is still forming underneath the hype.",
+   descZh:"當前的最前線：治理、語音 Agent 與多 Agent 系統。在這波熱潮底下，真正的工程紀律都還在成形。",
    quote:""}
 ];
 
 const CATS = [
-  ["git","Git & Version Control"],["sdlc","SDLC & Team Process"],["review","Code Review"],
-  ["test","Testing"],["cicd","CI/CD & Deploy"],["arch","Design & Architecture"],
-  ["dist","Concurrency & Distributed Systems"],["db","Databases"],["api","APIs & HTTP"],
-  ["obs","Observability"],["linux","Linux & Toolchain"],["sec","Security"],["career","Career & Communication"]
+  // craft it
+  ["arch","Design & Architecture"],["dist","Concurrency & Distributed Systems"],
+  ["db","Databases"],["api","APIs & HTTP"],
+  // ship it
+  ["test","Testing"],["review","Code Review"],
+  ["git","Git & Version Control"],["cicd","CI/CD & Deploy"],
+  // run it
+  ["obs","Observability"],["sec","Security"],["linux","Linux & Toolchain"],
+  // zoom out
+  ["sdlc","SDLC & Team Process"],["ai","AI & ML Engineering"],["career","Career & Communication"]
 ];
 
 const GLOSSARY = [
@@ -629,7 +666,7 @@ const GLOSSARY = [
   ["git","rebase","Rewrite your branch's history so it sits cleanly on top of main. Prefer this over merge commits for feature branches.","改寫分支歷史，讓它整齊地接在 main 之上。功能分支上優先使用 rebase 而非 merge commit。"],
   ["git","merge conflict","When two branches changed the same line. Resolve by picking one, combining both, or rewriting.","兩個分支修改了同一行。解決方式：選一個、合併兩者、或重寫。"],
   ["git","PR (Pull Request)","A request to merge your branch into main. The unit of code review.","請求將你的分支合併到 main。程式碼審查的基本單位。"],
-  ["git","draft PR","A PR marked as \"not ready yet.\" For getting early feedback.","標記為「尚未準備好」的 PR。用於獲取早期回饋。"],
+  ["git","draft PR","A PR marked as \"not ready yet.\" For getting early feedback.","標記為「尚未準備好」的 PR。用於取得早期回饋。"],
   ["git","stacked PR","A chain of PRs where each depends on the previous one. For large features that need incremental review.","一串互相依賴的 PR 鏈。用於需要逐步審查的大型功能。"],
   ["git","squash","Combine multiple commits into one. Useful before merging a messy feature branch.","將多個 commit 合併為一個。在合併混亂的功能分支前很有用。"],
   ["git","stash","Shelve uncommitted changes and revert to a clean working directory. `git stash pop` brings them back.","擱置未提交的變更，恢復到乾淨的工作目錄。`git stash pop` 取回。"],
@@ -638,10 +675,10 @@ const GLOSSARY = [
   ["git","bisect","Binary-search through git history to find which commit introduced a bug.","二分搜尋 git 歷史，找出引入 bug 的 commit。"],
   ["git","reflog","A log of everything HEAD has pointed to. Your undo button when you screw up a rebase.","HEAD 曾指向的所有位置的日誌。搞砸 rebase 時的復原按鈕。"],
   ["git","worktree","Multiple working directories from one repo. Useful for working on two branches at once without stashing.","從同一個 repo 建立多個工作目錄。不用 stash 就能同時處理兩個分支。"],
-  ["git","CODEOWNERS","A file that maps directories to the people who must approve changes to them.","將目錄映射到必須批准其變更的負責人的檔案。"],
+  ["git","CODEOWNERS","A file that maps directories to the people who must approve changes to them.","定義每個目錄由誰負責審核變更的檔案。"],
   ["git","blame","Show who last modified each line of a file. For understanding history, not assigning blame.","顯示檔案每一行最後是誰修改的。用於了解歷史，不是追究責任。"],
   ["git","revert","Create a new commit that undoes a previous commit. Safe for public branches.","建立一個新的 commit 來撤銷先前的 commit。對公開分支安全。"],
-  ["git","reset","Move HEAD and optionally the index/working tree to a previous state. `--soft` keeps changes staged, `--hard` discards them.","將 HEAD（可選 index/working tree）移動到先前的狀態。`--soft` 保留變更在 staged，`--hard` 丟棄。"],
+  ["git","reset","Move HEAD and optionally the index/working tree to a previous state. `--soft` keeps changes staged, `--hard` discards them.","將 HEAD（可選 index/working tree）移動到先前的狀態。`--soft` 讓變更留在 staged，`--hard` 直接丟掉。"],
   ["git","submodule","A reference to another repo embedded inside your repo. Pinned to a specific commit.","嵌入在 repo 內的另一個 repo 的參照。固定在特定 commit。"],
   ["git","tag","A named reference to a specific commit, usually for releases. Lightweight or annotated.","指向特定 commit 的命名參照，通常用於發行版本。可分為輕量與附註兩種。"],
 
@@ -668,7 +705,7 @@ const GLOSSARY = [
   ["sdlc","kanban","A visual workflow method that limits work in progress (WIP) and pulls items through stages. No fixed sprints.","一種視覺化工作流方法，限制進行中的工作（WIP），並將項目拉動通過各階段。沒有固定 sprint。"],
   ["sdlc","WIP limit","The maximum number of items allowed in a given workflow stage at once. Prevents context switching and bottlenecks.","某個工作流階段中同時允許的最大項目數。防止上下文切換和瓶頸。"],
   ["sdlc","estimation","The act of sizing work. Relative (story points) beats absolute (hours). The goal is forecasting, not precision.","估算工作量的行為。相對（story point）優於絕對（小時）。目標是預測，不是精確。"],
-  ["sdlc","capacity planning","Matching team bandwidth to upcoming work. Accounts for time off, ceremonies, and support overhead.","將團隊帶寬與即將到來的工作匹配。考慮請假、儀式和支援開銷。"],
+  ["sdlc","capacity planning","Matching team bandwidth to upcoming work. Accounts for time off, ceremonies, and support overhead.","根據團隊的人力餘裕來規劃接下來的工作，把休假、各種會議和支援的開銷都算進去。"],
 
   // review
   ["review","CL (Change List)","Google's term for a PR. You'll see this in Google's eng practices docs.","Google 對 PR 的稱呼。你會在 Google 的工程實務文件中看到。"],
@@ -689,7 +726,7 @@ const GLOSSARY = [
   ["test","smoke test","A quick, shallow test that answers one question: is the system on fire? Run it first.","一個快速、淺層的測試，回答一個問題：系統有沒有著火？先跑這個。"],
   ["test","testing pyramid","Lots of unit tests, fewer integration tests, very few e2e tests. The cost/speed ratio dictates the shape.","大量單元測試、少量整合測試、極少 e2e 測試。成本/速度比決定了形狀。"],
   ["test","test double","A generic term for fake objects used in tests. Includes mocks, stubs, fakes, spies.","測試中使用的假物件的統稱。包含 mock、stub、fake、spy。"],
-  ["test","mock","A test double that records calls and lets you assert whether it was called with given arguments.","記錄呼叫並讓你斷言是否以特定參數被呼叫的測試替身。"],
+  ["test","mock","A test double that records calls and lets you assert whether it was called with given arguments.","記錄呼叫、讓你可以斷言它有沒有被用特定參數呼叫過的測試替身。"],
   ["test","stub","A test double that returns predetermined answers, no recording.","返回預定答案但不記錄的測試替身。"],
   ["test","fake","A working but simplified implementation, such as an in-memory database.","可運作但簡化的實作，例如記憶體資料庫。"],
   ["test","TDD","Test-Driven Development. Write the test first, watch it fail, then write the code to make it pass.","測試驅動開發。先寫測試，看它失敗，再寫程式讓它通過。"],
@@ -740,6 +777,10 @@ const GLOSSARY = [
   ["arch","clean architecture","Robert Martin's layered architecture: entities → use cases → interface adapters → frameworks. Dependency points inward.","Robert Martin 的分層架構：實體→用例→介面適配器→框架。依賴指向內層。"],
   ["arch","event sourcing","Store the full sequence of state-changing events instead of the current state. Rebuild state by replaying events.","儲存完整的狀態變更事件序列，而不是當前狀態。透過重放事件重建狀態。"],
   ["arch","strangler fig pattern","Gradually replace a legacy system by building new functionality alongside it and routing traffic over piece by piece.","逐步取代舊系統：在旁邊建立新功能，一塊一塊地轉移流量。"],
+  ["arch","MVC","Model-View-Controller. Separates data, presentation, and control flow. Most server frameworks are really \"Model 2\", not true MVC.","Model-View-Controller。把資料、呈現和控制流程分開。多數伺服器框架其實是「Model 2」，不是真正的 MVC。"],
+  ["arch","Chesterton's Fence","Don't remove something until you understand why it was put there in the first place.","在搞懂某個東西當初為什麼被擺在那之前，別急著把它移掉。"],
+  ["arch","cross-cutting concern","Functionality like logging, auth, or tenancy that spans many modules instead of living in one.","像記錄、驗證、租戶隔離這種橫跨許多模組、收不進單一模組的功能。"],
+  ["arch","immutable infrastructure","Never modify servers in place. To change anything, rebuild the image and replace the instance, which makes rollbacks atomic.","伺服器絕不就地修改。要改任何東西就重建 image、替換執行個體，讓回滾變成一個原子操作。"],
 
   // dist
   ["dist","race condition","When output depends on the timing of uncontrollable events. Two threads reading and writing shared state without coordination.","輸出取決於不可控事件的時序。兩個執行緒未經協調地讀寫共享狀態。"],
@@ -756,6 +797,11 @@ const GLOSSARY = [
   ["dist","leader election","The process by which distributed nodes select one node to coordinate work. Prevents conflicts and split decisions.","分散式節點選出一個節點來協調工作的過程。防止衝突和分裂決策。"],
   ["dist","split-brain","A failure mode where a cluster divides into two groups that each believe they are the leader. Causes data corruption.","叢集分裂成兩個各自認為自己是領導者的群組的故障模式。導致資料損毀。"],
   ["dist","CRDT","Conflict-free Replicated Data Type. A data structure that can be updated concurrently by multiple nodes and automatically merges without conflicts.","無衝突複製資料類型。可以被多個節點同時更新並自動合併而無衝突的資料結構。"],
+  ["dist","saga pattern","Manage a transaction spanning multiple services as a sequence of local steps, each with a compensating undo. The distributed answer to \"no distributed transactions.\"","把橫跨多個服務的交易，拆成一連串各自的本地步驟，每步都配一個補償用的還原動作。分散式世界裡「沒有分散式交易」的解法。"],
+  ["dist","service mesh","An infrastructure layer that handles service-to-service networking (retries, mTLS, observability) via sidecar proxies instead of app code.","一層基礎設施，用 sidecar proxy 而非應用程式碼來處理服務間的網路（重試、mTLS、可觀測性）。"],
+  ["dist","sidecar","A helper process deployed alongside a service to add cross-cutting concerns like proxying or logging without changing the app.","跟服務部署在一起的輔助行程，不動應用本身就能加上代理、記錄這類橫切功能。"],
+  ["dist","head-of-line blocking","One stalled item blocks everything queued behind it. TCP suffers it across streams; QUIC's per-stream design avoids it.","排最前面的東西卡住，後面排隊的全跟著卡。TCP 會跨串流發生，QUIC 用各自獨立的串流來避開。"],
+  ["dist","token bucket / leaky bucket","Two classic rate-limiting algorithms. Token bucket allows bursts up to a cap; leaky bucket enforces a smooth, constant output.","兩種經典限流演算法。token bucket 允許突發到某個上限；leaky bucket 則強制平穩、固定速率的輸出。"],
 
   // db
   ["db","ACID","Atomicity, Consistency, Isolation, Durability. The guarantees a transaction gives you.","原子性、一致性、隔離性、持久性。交易給你的保證。"],
@@ -772,6 +818,15 @@ const GLOSSARY = [
   ["db","CTE (Common Table Expression)","A temporary named result set within a SQL query. Improves readability and enables recursive queries.","SQL 查詢中的臨時命名結果集。提高可讀性並支援遞迴查詢。"],
   ["db","query plan","The execution strategy a database engine chooses for a query. Use EXPLAIN to read it and find slow spots.","資料庫引擎為查詢選擇的執行策略。用 EXPLAIN 來讀取並找出慢的地方。"],
   ["db","denormalization","Intentionally adding redundancy to a database schema to improve read performance. The opposite of normalization.","故意在資料庫 schema 中加入冗餘以改善讀取效能。正規化的反面。"],
+  ["db","isolation level","How much one transaction sees of others' uncommitted work: read committed, repeatable read, serializable. Trades consistency for concurrency.","一個交易能看到其他交易多少未提交的變更：read committed、repeatable read、serializable。用一致性換取並行度。"],
+  ["db","ORM","Object-Relational Mapping. Maps database rows to objects in your language. Convenient, but hides the queries it generates (see N+1).","物件關聯對映。把資料庫的資料列對映成程式語言裡的物件。方便，但會把它產生的查詢藏起來，參見 N+1。"],
+  ["db","B-tree","The balanced, ordered tree behind most database indexes. O(log n) lookups, plus range scans and sorted reads.","多數資料庫索引背後的平衡有序樹。O(log n) 查找，還能做範圍掃描和排序讀取。"],
+  ["db","WAL (Write-Ahead Log)","Append changes to a log before touching the data files, so a crash can be replayed and recovered. The basis of durability.","先把變更寫進 log 再去動資料檔，這樣當機後就能重播還原。持久性的基礎。"],
+  ["db","MVCC","Multi-Version Concurrency Control. Keep multiple row versions so readers never block writers, and each transaction sees a consistent snapshot.","多版本並行控制。保留多個資料列版本，讓讀取永遠不會擋到寫入，每個交易看到的都是一致的快照。"],
+  ["db","OLTP","Online Transaction Processing. Many small, low-latency reads and writes. The typical application-database workload.","線上交易處理。大量又小又低延遲的讀寫，是一般應用程式資料庫的典型工作負載。"],
+  ["db","OLAP","Online Analytical Processing. Large aggregate scans over historical data for analytics and reporting.","線上分析處理。對歷史資料做大範圍的彙總掃描，用於分析和報表。"],
+  ["db","columnar storage","Store table data by column instead of by row, so analytical scans read only the columns they need.","把表格資料按欄（而非按列）儲存，讓分析掃描只讀取用得到的欄位。"],
+  ["db","phantom read","A concurrency anomaly where re-running the same query returns newly inserted rows, because another transaction committed in between.","一種並行異常：同一個查詢重跑會多出新插入的資料列，因為中間有另一個交易提交了。"],
 
   // api
   ["api","REST","An architectural style for APIs using HTTP methods (GET, POST, PUT, DELETE) on resources (URLs).","一種 API 架構風格，在資源（URL）上使用 HTTP 方法（GET、POST、PUT、DELETE）。"],
@@ -787,6 +842,9 @@ const GLOSSARY = [
   ["api","API versioning","Strategies for evolving an API without breaking existing clients. URL path (`/v1/`), header, or query parameter.","在不破壞現有客戶端的情況下演進 API 的策略。URL 路徑（`/v1/`）、標頭或查詢參數。"],
   ["api","WebSocket","A full-duplex communication protocol over a single TCP connection. For real-time features: chat, live updates, gaming.","在單一 TCP 連線上的全雙工通訊協定。用於即時功能：聊天、即時更新、遊戲。"],
   ["api","SSE (Server-Sent Events)","A unidirectional protocol where the server pushes events to the client over HTTP. Simpler than WebSocket for one-way streams.","伺服器透過 HTTP 向客戶端推送事件的單向協定。比 WebSocket 更簡單，適用於單向串流。"],
+  ["api","QUIC","A UDP-based transport with reliability and TLS 1.3 built in. The foundation of HTTP/3.","以 UDP 為基礎的傳輸協定，內建可靠傳輸和 TLS 1.3。HTTP/3 的基礎。"],
+  ["api","API gateway","A single entry point in front of your services that handles routing, aggregation, auth, and rate limiting.","擋在服務前面的單一入口，負責路由、彙整、驗證和限流。"],
+  ["api","HTTP request smuggling","Desyncing how the front-end and back-end parse request boundaries, to poison caches or hijack other users' requests.","讓前端和後端對請求邊界的解讀不一致，藉此污染快取或挾持其他使用者的請求。"],
 
   // obs
   ["obs","log","A timestamped string recording what happened. Structured (JSON) beats unstructured.","記錄發生事件的時間戳記字串。結構化（JSON）優於非結構化。"],
@@ -802,6 +860,7 @@ const GLOSSARY = [
   ["obs","dashboard","A visual display of key metrics and logs. Should answer \"is the system healthy?\" at a glance.","關鍵指標和日誌的視覺化顯示。應該一眼就能回答「系統健康嗎？」。"],
   ["obs","runbook","A documented procedure for handling common operational issues. What to check, what to do, who to call.","處理常見運維問題的文件化程序。檢查什麼、做什麼、打電話給誰。"],
   ["obs","on-call","The rotation where an engineer is responsible for responding to incidents outside business hours.","工程師在非工作時間負責回應事件的輪值制度。"],
+  ["obs","percentile latency (p50/p95/p99)","Latency at a percentile: p99 is the slowest 1% of requests. Averages hide tail latency; percentiles expose it.","以百分位數看延遲：p99 就是最慢的 1% 請求。平均值會蓋掉長尾延遲，百分位數才看得出來。"],
 
   // linux
   ["linux","shell","The command-line interpreter (bash, zsh, fish). Your primary interface to the OS as an engineer.","命令列直譯器（bash、zsh、fish）。工程師與作業系統的主要介面。"],
@@ -821,6 +880,10 @@ const GLOSSARY = [
   ["linux","cron","A time-based job scheduler. Runs commands at specified intervals. `crontab -e` to edit.","基於時間的工作排程器。在指定間隔執行命令。`crontab -e` 編輯。"],
   ["linux","symlink","A symbolic link. A file that points to another file or directory. Like a shortcut, but the OS treats it as the real thing.","符號連結。指向另一個檔案或目錄的檔案。像捷徑，但作業系統把它當作真實檔案。"],
   ["linux","file descriptor","An integer handle the OS uses to track open files, sockets, and pipes. `0`=stdin, `1`=stdout, `2`=stderr.","作業系統用來追蹤開啟檔案、socket 和 pipe 的整數代碼。`0`=stdin、`1`=stdout、`2`=stderr。"],
+  ["linux","epoll","The Linux event-notification API that scales to many connections by waking only on ready file descriptors, unlike O(n) select/poll.","Linux 的事件通知 API，只在有 fd 就緒時才喚醒，因此撐得住大量連線，不像 select/poll 是 O(n)。"],
+  ["linux","mmap","Map a file or device into a process's address space so it's accessed as memory instead of read/write syscalls.","把檔案或裝置對映進行程的位址空間，讓你像存取記憶體一樣存取它，而不必用 read/write 系統呼叫。"],
+  ["linux","io_uring","A shared ring-buffer interface for async I/O that submits and reaps operations without a syscall per request.","用共享環狀緩衝區做非同步 I/O 的介面，提交和收割操作都不必每個請求都做一次系統呼叫。"],
+  ["linux","zero-copy","Move data between a file descriptor and a socket without bouncing it through userspace buffers (sendfile, splice).","在 fd 和 socket 之間搬資料，途中不繞經使用者空間的緩衝區（sendfile、splice）。"],
 
   // sec
   ["sec","authn","Authentication. Who are you? (login, password, token, SSO)","認證。你是誰？（登入、密碼、令牌、SSO）"],
@@ -840,6 +903,13 @@ const GLOSSARY = [
   ["sec","zero trust","A security model that assumes no entity is trusted by default, even inside the network. Verify every request.","一種安全模型，預設不信任任何實體，即使在網路內部。驗證每個請求。"],
   ["sec","secret management","Storing and rotating API keys, database passwords, and certificates securely. Never in code, never in env files committed to git.","安全地儲存和輪換 API 金鑰、資料庫密碼和憑證。永遠不在程式碼中，永遠不在提交到 git 的 env 檔案中。"],
   ["sec","SAST / DAST","Static Application Security Testing (analyze source code) vs Dynamic Application Security Testing (test running application).","靜態應用程式安全測試（分析原始碼）與動態應用程式安全測試（測試執行中的應用程式）。"],
+  ["sec","CVE","Common Vulnerabilities and Exposures. A public ID for a known security flaw, e.g. CVE-2021-44228 (Log4Shell).","已知安全漏洞的公開識別碼，例如 CVE-2021-44228（Log4Shell）。"],
+  ["sec","MFA / 2FA","Multi-Factor Authentication. Requires more than a password: something you know, something you have, or something you are.","多因素驗證。除了密碼之外還要別的：你知道的、你持有的、或你本身的特徵。"],
+  ["sec","prompt injection","An attack where untrusted content fed to an LLM smuggles in instructions that hijack the agent. The SQL injection of the AI era.","一種攻擊：餵給 LLM 的不可信內容夾帶指令，藉此挾持 agent 的行為。AI 時代的 SQL injection。"],
+  ["sec","RBAC","Role-Based Access Control. Roles sit between users and permissions. The dominant access model for business apps.","角色型存取控制。在使用者和權限之間放一層角色，是商業應用最主流的存取模型。"],
+  ["sec","memory safety","Preventing out-of-bounds access, use-after-free, and similar bugs, whether through the language, the runtime, or tooling.","防止越界存取、use-after-free 這類 bug，可以靠語言、執行環境或工具來達成。"],
+  ["sec","side-channel attack","Extracting secrets from a system's physical or shared-state behavior (timing, cache, power) rather than breaking its logic.","不去攻破邏輯，而是從系統的物理或共用狀態行為（時序、快取、功耗）把秘密撈出來。"],
+  ["sec","forward secrecy","Deriving session keys so that a later compromise of the server's long-term key still can't decrypt past recorded traffic.","以特定方式推導 session 金鑰，即使日後伺服器的長期金鑰外洩，也解不開先前側錄的流量。"],
 
   // career
   ["career","rubber duck debugging","Explaining your problem to an inanimate object and finding the answer mid-explanation.","向無生命物體解釋你的問題，然後在解釋過程中找到答案。"],
@@ -848,42 +918,143 @@ const GLOSSARY = [
   ["career","bus factor","How many people need to get hit by a bus before the project is dead. A bus factor of 1 is a risk.","需要多少人被公車撞到專案才會死。公車因子為 1 是風險。"],
   ["career","bikeshedding","Spending disproportionate time on trivial details.","在瑣碎細節上花費不成比例的時間。"],
   ["career","mentorship","A relationship where an experienced engineer helps a less experienced one grow. Not about giving answers, about asking the right questions.","資深工程師幫助資淺工程師成長的關係。不是給答案，是問對的問題。"],
-  ["career","impostor syndrome","The feeling that you don't belong and will be found out as a fraud, despite evidence of competence. Nearly universal in tech.","儘管有能力的證據，仍然覺得自己不屬於這裡、會被發現是騙子的感覺。在科技業幾乎是普遍現象。"],
+  ["career","impostor syndrome","The feeling that you don't belong and will be found out as a fraud, despite evidence of competence. Nearly universal in tech.","明明已經證明自己有能力，還是覺得自己不屬於這裡、遲早會被拆穿是騙子的感覺。在科技業幾乎是普遍現象。"],
   ["career","growth mindset","The belief that ability can be developed through effort and learning. Contrasts with fixed mindset (talent is innate).","相信能力可以透過努力和學習來發展的信念。與固定型思維（天才是天生的）相對。"],
   ["career","1:1 meeting","A regular one-on-one meeting between an engineer and their manager. Not a status update; it's for career growth, feedback, and blockers.","工程師與主管之間的定期一對一會議。不是進度報告；是關於職涯發展、回饋和阻礙。"],
-  ["career","feedback","Constructive information about performance. Good feedback is specific, timely, and actionable.","關於表現的建設性資訊。好的回饋是具體、及時且可執行的。"]
+  ["career","feedback","Constructive information about performance. Good feedback is specific, timely, and actionable.","關於表現的建設性資訊。好的回饋是具體、及時且可執行的。"],
+
+  // ai
+  ["ai","LLM","Large Language Model. Trained on massive text to predict the next token; the engine behind modern AI features.","大型語言模型。用海量文本訓練來預測下一個 token，是現代 AI 功能背後的引擎。"],
+  ["ai","token","The unit an LLM reads and writes, roughly ¾ of a word. You pay, and hit context limits, per token.","LLM 讀寫的基本單位，大約是四分之三個英文單字。計費和 context 上限都是以 token 計。"],
+  ["ai","context window","The maximum tokens a model can consider at once. Everything the model \"knows\" in a request lives here.","模型一次能考慮的最大 token 數。一個請求裡模型「知道」的一切都在這個範圍內。"],
+  ["ai","embedding","A vector representation of text so similarity becomes distance. The basis of semantic search and RAG.","把文字轉成向量，讓語意相似度變成向量之間的距離。語意搜尋和 RAG 的基礎。"],
+  ["ai","RAG","Retrieval-Augmented Generation. Fetch relevant documents at query time and feed them to the model instead of fine-tuning knowledge in.","檢索增強生成。在查詢當下撈出相關文件餵給模型，而不是靠 fine-tune 把知識塞進模型。"],
+  ["ai","prompt engineering","Shaping the model's input to steer its output. The cheap, fast lever to try before reaching for fine-tuning.","調整餵給模型的輸入來引導輸出。在動用 fine-tune 之前，最便宜也最快的手段。"],
+  ["ai","context engineering","Getting the right information, tools, and memory in front of a model at the right moment. The craft beneath every capable agent.","在對的時機，把對的資訊、工具和記憶餵到模型面前。每個能幹的 agent 背後的真功夫。"],
+  ["ai","fine-tuning","Further-training a base model on your own data to specialize it for a task.","拿自己的資料在基礎模型上再訓練，讓它專精於特定任務。"],
+  ["ai","hallucination","When a model states something fluent and plausible but false. The core reliability problem of LLMs.","模型講出一段流暢、看似合理但其實是錯的內容。LLM 最核心的可靠性問題。"],
+  ["ai","agent","An LLM given tools and a loop, so it can take actions and pursue a goal, not just emit text.","給 LLM 配上工具和一個迴圈，讓它能實際採取行動、追著目標跑，而不只是吐出文字。"],
+  ["ai","eval","A test suite for non-deterministic systems: scores model output against expected behavior.","非確定性系統的測試套件：拿模型輸出跟預期行為打分數。"],
+  ["ai","vector database","A store optimized for nearest-neighbor search over embeddings.","針對 embedding 做最近鄰搜尋而最佳化的資料庫。"],
+  ["ai","inference","Running a trained model to get output, as opposed to training it. Where the per-request cost lives.","拿訓練好的模型跑出結果，相對於訓練它。每次請求的成本就花在這裡。"],
+  ["ai","MLOps","CI/CD, monitoring, and data discipline applied to machine learning. The production discipline behind ML Engineering.","把 CI/CD、監控和資料紀律套用到機器學習上。ML 工程背後那套講求紀律的生產實務。"],
+  ["ai","model drift","When a model's accuracy decays over time as real-world data diverges from its training set.","隨著真實世界的資料跟訓練集的落差越拉越大，模型準確度隨時間衰退。"],
+  ["ai","transformer","The attention-based neural network architecture underneath every modern LLM.","現代每一個 LLM 底層的神經網路架構，核心是 attention 機制。"],
+  ["ai","RLHF","Reinforcement Learning from Human Feedback. Fine-tune a model against human preference rankings to shape how helpful and safe it is.","基於人類回饋的強化學習。用人類的偏好排序來微調模型，形塑它有多有用、多安全。"],
+  ["ai","chain-of-thought (CoT)","Prompting or training a model to spell out intermediate reasoning steps before its final answer. Often improves hard-reasoning results.","引導或訓練模型在給最終答案前，先把中間的推理步驟寫出來。通常能提升難題的表現。"],
+  ["ai","quantization","Reduce the numeric precision of model weights (e.g. float32 to int4) to shrink memory and speed up inference, trading some accuracy.","降低模型權重的數值精度（例如 float32 轉成 int4），用一點準確度換取更小的記憶體佔用和更快的推論。"],
+  ["ai","mixture of experts (MoE)","An architecture that routes each token to a small subset of expert subnetworks, so only part of the model runs per token.","一種架構，把每個 token 導向少數幾個專家子網路，因此每個 token 只會用到模型的一部分。"],
+  ["ai","distillation","Train a smaller model on a larger model's outputs to transfer capability at lower cost.","用大模型的輸出來訓練小模型，以較低的成本移轉能力。"],
+  ["ai","KV cache","Cached key and value tensors from earlier tokens that let a model generate without recomputing past attention. The main memory cost at inference.","把先前 token 算出的 key 和 value 張量快取起來，讓模型生成時不必重算過去的 attention。推論時記憶體開銷的主要來源。"]
 ];
 
 const READS = [
-  ["git","A Note About Git Commit Messages","Tim Pope","50/72 rule, imperative mood, what goes in the body.","https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html"],
-  ["sdlc","The Twelve-Factor App","Adam Wiggins / Heroku","A methodology for portable, cloud-ready SaaS apps.","https://12factor.net/"],
-  ["sdlc","Design Docs at Google","Malte Ubl","What goes in a design doc and how the process actually works.","https://www.industrialempathy.com/posts/design-docs-at-google/"],
-  ["sdlc","The Joel Test","Joel Spolsky","12 yes/no questions to evaluate a software team.","https://www.joelonsoftware.com/2000/08/09/the-joel-test-12-steps-to-better-code/"],
-  ["review","Google Engineering Practices: Code Review","Google","The practical standard for what reviewers look for.","https://google.github.io/eng-practices/"],
-  ["test","The Practical Test Pyramid","Martin Fowler","A hands-on walkthrough of the test pyramid with examples.","https://martinfowler.com/articles/practical-test-pyramid.html"],
-  ["test","Mocks Aren't Stubs","Martin Fowler","The definitive taxonomy of test doubles.","https://martinfowler.com/articles/mocksArentStubs.html"],
-  ["test","Property-Based Testing with Hypothesis","David R. MacIver","A practical intro to property-based testing in Python.","https://increment.com/testing/i-test-in-production/"],
-  ["arch","The Law of Leaky Abstractions","Joel Spolsky","All non-trivial abstractions leak.","https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/"],
-  ["arch","Things You Should Never Do, Part I","Joel Spolsky","Why rewriting from scratch is the worst strategic mistake.","https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/"],
-  ["arch","Two Hard Things","Martin Fowler","Cache invalidation and naming things.","https://martinfowler.com/bliki/TwoHardThings.html"],
+  // arch: complexity → abstraction → structure → pragmatic judgment → modeling → correctness
   ["arch","No Silver Bullet","Fred Brooks","Essential versus accidental complexity.","http://www.cs.unc.edu/techreports/86-020.pdf"],
+  ["arch","Out of the Tar Pit","Moseley & Marks","Complexity is the root cause of most software problems, and most of it is accidental.","https://curtclifton.net/papers/MoseleyMarks06a.pdf"],
+  ["arch","Simple Made Easy","Rich Hickey","Simple (one concept) is not easy (familiar). Choose simple.","https://www.infoq.com/presentations/Simple-Made-Easy/"],
+  ["arch","The Grug Brained Developer","grugbrain.dev","A caveman-voiced take on complexity. Say no to the complexity spirit demon.","https://grugbrain.dev/"],
+  ["arch","The Humble Programmer","Edsger W. Dijkstra","Dijkstra's Turing lecture: complexity is the enemy, and humility about our own limits is the only real defense.","https://www.cs.utexas.edu/users/EWD/transcriptions/EWD03xx/EWD340.html"],
+  ["arch","A Philosophy of Software Design","John Ousterhout","Deep modules, information hiding, and treating complexity as the root problem. A modern peer of No Silver Bullet.","https://web.stanford.edu/~ouster/cgi-bin/aposd.php"],
+  ["arch","The Law of Leaky Abstractions","Joel Spolsky","All non-trivial abstractions leak.","https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/"],
+  ["arch","The Wrong Abstraction","Sandi Metz","A wrong abstraction costs more than duplication. Prefer to inline and start over.","https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction"],
+  ["arch","Parse, Don't Validate","Alexis King","Push validation to the boundary and encode the result in the type.","https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/"],
+  ["arch","Go To Statement Considered Harmful","Edsger Dijkstra","Unrestrained goto makes program state impossible to reason about.","https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf"],
+  ["arch","On the Criteria To Be Used in Decomposing Systems into Modules","David Parnas","Decompose by hiding design decisions, not by flowchart steps. The origin of information hiding.","https://wstomv.win.tue.nl/edu/2ip30/references/criteria_for_modularization.pdf"],
+  ["arch","How Do Committees Invent?","Melvin Conway","Systems mirror the communication structure of the org that builds them. The origin of Conway's Law.","http://www.melconway.com/Home/Committees_Paper.html"],
+  ["arch","Big Ball of Mud","Brian Foote & Joseph Yoder","The most common software architecture, and how systems decay into it.","http://www.laputan.org/mud/"],
+  ["arch","The Rise of \"Worse is Better\"","Richard Gabriel","Why the simpler, uglier design often beats the correct one.","https://www.dreamsongs.com/RiseOfWorseIsBetter.html"],
+  ["arch","Less is exponentially more","Rob Pike","Why Go was built for C++ programmers but won over Python ones. Simplicity is power, but power is audience-dependent.","https://commandcenter.blogspot.com/2012/06/less-is-exponentially-more.html"],
+  ["arch","(How to Write a (Lisp) Interpreter in Python)","Peter Norvig","A working Scheme interpreter in under 100 lines of Python. The hard part of a language is syntax, not semantics.","https://norvig.com/lispy.html"],
   ["arch","Choose Boring Technology","Dan McKinley","You get about three innovation tokens per project.","https://mcfunley.com/choose-boring-technology"],
   ["arch","You Are Not Google","Bradfield CS","Don't cargo-cult Big Tech architectures.","https://blog.bradfieldcs.com/you-are-not-google-84912cf44afb"],
+  ["arch","Suffering-oriented Programming","Nathan Marz","Build the ugly, specific thing first. Generalize only after you've felt the pain of not having the abstraction.","https://nathanmarz.com/blog/suffering-oriented-programming.html"],
+  ["arch","Things You Should Never Do, Part I","Joel Spolsky","Why rewriting from scratch is the worst strategic mistake.","https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/"],
+  ["arch","Two Hard Things","Martin Fowler","Cache invalidation and naming things.","https://martinfowler.com/bliki/TwoHardThings.html"],
   ["arch","Domain-Driven Design: Tackling Complexity","Eric Evans","The original DDD blue book.","https://domainlanguage.com/ddd/"],
-  ["dist","Fallacies of Distributed Computing","L. Peter Deutsch / Sun","Eight assumptions that all prove false.","https://web.archive.org/web/19991008110904/http://java.sun.com:80/people/jag/Fallacies.html"],
-  ["dist","I Test in Prod","Charity Majors","Once you deploy, you're testing systems, not code.","https://increment.com/testing/i-test-in-production/"],
+  ["arch","What Every Computer Scientist Should Know About Floating-Point Arithmetic","David Goldberg","Why 0.1 + 0.2 isn't 0.3, and what to do about it.","https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html"],
+  ["arch","Performance Hints","Jeff Dean & Sanjay Ghemawat","Estimate performance from hardware cost tables first, profile second, then cut allocations and cache pressure.","https://abseil.io/fast/hints.html"],
+
+  // dist: why it's hard → concurrency models → ordering & consensus → data at scale → operating it
   ["dist","The Free Lunch Is Over","Herb Sutter","The end of free CPU clock-speed scaling.","http://gotw.ca/publications/concurrency-ddj.htm"],
+  ["dist","Fallacies of Distributed Computing","L. Peter Deutsch / Sun","Eight assumptions that all prove false.","https://web.archive.org/web/19991008110904/http://java.sun.com:80/people/jag/Fallacies.html"],
   ["dist","Latency Numbers Every Programmer Should Know","Jeff Dean / Google","L1 0.5ns, memory 100ns, disk seek 10ms. Internalize these.","https://brenocon.com/dean_perf.html"],
+  ["dist","Why Threads Are A Bad Idea","John Ousterhout","The talk that opened the threads-versus-events debate. Threads are hard for mortals to reason about.","https://web.stanford.edu/~ouster/cgi-bin/papers/threads.pdf"],
+  ["dist","The C10K Problem","Dan Kegel","Why select and poll can't scale to ten thousand connections, and why event notification (epoll, kqueue) is the fix. The blueprint behind nginx and Node.","http://www.kegel.com/c10k.html"],
+  ["dist","Cooperative Task Management without Manual Stack Management","Adya et al. / Microsoft","Separates task management from stack management. The conceptual root of the async coloring problem.","https://www.cs.utexas.edu/~witchel/S25-380L/papers/adya02usenix-fibers.pdf"],
+  ["dist","What Color is Your Function?","Bob Nystrom","Async/await splits every function into two colors that don't mix, and that split spreads through the whole codebase.","https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/"],
+  ["dist","Concurrency Is Not Parallelism","Rob Pike","Concurrency is about structure, parallelism is about execution. They are not the same thing.","https://go.dev/blog/waza-talk"],
+  ["dist","Structured Concurrency","Martin Sústrik","Coined the term. Concurrency should nest like control flow, not spawn tasks that escape their scope.","https://www.250bpm.com/p/structured-concurrency"],
+  ["dist","Notes on structured concurrency, or: Go statement considered harmful","Nathaniel J. Smith","Every task lives inside a nursery, so nothing outlives the scope that started it.","https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/"],
+  ["dist","Time, Clocks, and the Ordering of Events","Leslie Lamport","Ordering events without a shared clock. The logical-clocks paper.","https://lamport.azurewebsites.net/pubs/time-clocks.pdf"],
   ["dist","In Search of an Understandable Consensus Algorithm (Raft)","Diego Ongaro","The Raft dissertation.","https://raft.github.io/raft.pdf"],
+  ["dist","CAP Twelve Years Later","Eric Brewer","CAP is not pick-two. The tradeoff only appears during a partition.","https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/"],
+  ["dist","MapReduce: Simplified Data Processing on Large Clusters","Dean & Ghemawat / Google","The programming model that made processing across thousands of machines routine.","https://research.google.com/archive/mapreduce-osdi04.pdf"],
+  ["dist","Dynamo: Amazon's Highly Available Key-value Store","DeCandia et al. / Amazon","The always-writable store that became the blueprint for eventual consistency.","https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf"],
+  ["dist","Pattern: Service Mesh","Phil Calcado","Why network resilience moved out of per-language libraries and into a sidecar proxy. The clearest account of why the pattern exists.","https://philcalcado.com/2017/08/03/pattern_service_mesh.html"],
+  ["dist","I Test in Prod","Charity Majors","Once you deploy, you're testing systems, not code.","https://increment.com/testing/i-test-in-production/"],
+
+  // db: foundations → systems → streaming
+  ["db","A Relational Model of Data for Large Shared Data Banks","Edgar Codd","The paper that founded relational databases and SQL.","https://www.engineering.upenn.edu/~zives/03f/cis550/codd.pdf"],
+  ["db","Designing Data-Intensive Applications","Martin Kleppmann","A tour of storage, replication, partitioning, and consistency tradeoffs.","https://dataintensive.net/"],
+  ["db","The Log","Jay Kreps","The append-only log as the backbone of data integration and stream processing.","https://web.archive.org/web/20240105095933/https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying"],
+
+  // api: design → versioning
+  ["api","Architectural Styles and the Design of Network-based Software Architectures","Roy Fielding","The dissertation that defined REST. Chapter 5 is the one everyone cites.","https://ics.uci.edu/~fielding/pubs/dissertation/top.htm"],
+  ["api","URL Design","Kyle Neath","URLs are a permanent public API. Design them hackable, memorable, and stable before you write the code behind them.","https://warpspire.com/posts/url-design/"],
   ["api","Semantic Versioning 2.0.0","semver.org","MAJOR.MINOR.PATCH, and when to bump each.","https://semver.org/"],
+
+  // test: strategy → doubles → techniques
+  ["test","The Practical Test Pyramid","Martin Fowler","A hands-on walkthrough of the test pyramid with examples.","https://martinfowler.com/articles/practical-test-pyramid.html"],
+  ["test","Mocks Aren't Stubs","Martin Fowler","A taxonomy of test doubles: dummy, stub, spy, mock, fake.","https://martinfowler.com/articles/mocksArentStubs.html"],
+  ["test","Property-Based Testing with Hypothesis","David R. MacIver","A practical intro to property-based testing in Python.","https://hypothesis.works/articles/what-is-property-based-testing/"],
+
+  // review
+  ["review","Google Engineering Practices: Code Review","Google","What Google reviewers actually look for in a review.","https://google.github.io/eng-practices/"],
+
+  // git
+  ["git","A Note About Git Commit Messages","Tim Pope","50/72 rule, imperative mood, what goes in the body.","https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html"],
+
+  // obs: why systems fail → run reliably → instrument
   ["obs","How Complex Systems Fail","Richard Cook","18 points on why complex systems break.","https://stuff.mit.edu/afs/athena/course/2/2.75/resources/random/How%20Complex%20Systems%20Fail.pdf"],
+  ["obs","Site Reliability Engineering","Google / O'Reilly","Where SLOs, SLIs, and error budgets come from.","https://sre.google/sre-book/table-of-contents/"],
   ["obs","OpenTelemetry Documentation","CNCF","The official docs for the unified observability standard.","https://opentelemetry.io/docs/"],
-  ["linux","The Absolute Minimum About Unicode","Joel Spolsky","There is no such thing as plain text.","https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/"],
+
+  // sec: trust foundations → practical risks
+  ["sec","Reflections on Trusting Trust","Ken Thompson","You can't fully trust code you didn't write yourself. A compiler backdoor no source review would catch.","https://www.cs.cmu.edu/~rdriley/487/papers/Thompson_1984_ReflectionsonTrustingTrust.pdf"],
   ["sec","The OWASP Top 10","OWASP","The ten most critical web application security risks.","https://owasp.org/www-project-top-ten/"],
+  ["sec","The Illustrated TLS Connection","Michael Driscoll","A full TLS handshake explained byte by byte, with commands you can run yourself. The wire-level reference.","https://tls12.xargs.org/"],
+
+  // linux
+  ["linux","The Absolute Minimum About Unicode","Joel Spolsky","There is no such thing as plain text.","https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/"],
+  ["linux","The Lost Art of Structure Packing","Eric S. Raymond","How field ordering and alignment padding bloat a struct, and how to claw back 20 to 40% by reordering. Applies to C, Go, and Rust.","http://www.catb.org/~esr/structure-packing/"],
+
+  // sdlc: team → dev model → process → app methodology
+  ["sdlc","The Joel Test","Joel Spolsky","12 yes/no questions to evaluate a software team.","https://www.joelonsoftware.com/2000/08/09/the-joel-test-12-steps-to-better-code/"],
+  ["sdlc","The Cathedral and the Bazaar","Eric Raymond","Two models of software development, and why open source works.","http://www.catb.org/~esr/writings/cathedral-bazaar/cathedral-bazaar/"],
+  ["sdlc","Design Docs at Google","Malte Ubl","What goes in a design doc and how the process actually works.","https://www.industrialempathy.com/posts/design-docs-at-google/"],
+  ["sdlc","The Twelve-Factor App","Adam Wiggins / Heroku","A methodology for portable, cloud-ready SaaS apps.","https://12factor.net/"],
+
+  // ai: primer → theory → practice → production
+  ["ai","從零開始認識 AI：LLM、Agent、以及怎麼跟他們合作","Hoss Huang","A from-scratch primer on how LLMs and agents work, and how to work with them.","https://cjhwong.github.io/ai-fundamentals/"],
+  ["ai","Attention Is All You Need","Vaswani et al.","The 2017 paper that introduced the Transformer.","https://arxiv.org/abs/1706.03762"],
+  ["ai","Software 2.0","Andrej Karpathy","Neural nets as a new kind of software, written in weights.","https://karpathy.medium.com/software-2-0-a64152b37c35"],
+  ["ai","The Bitter Lesson","Rich Sutton","General methods that scale with compute beat hand-crafted human knowledge, every time.","http://www.incompleteideas.net/IncIdeas/BitterLesson.html"],
+  ["ai","Building Effective Agents","Anthropic","Simple, composable patterns beat complex agent frameworks.","https://www.anthropic.com/engineering/building-effective-agents"],
+  ["ai","Applied LLMs: A Year of Building with LLMs","Yan, Husain, et al.","A year of shipping LLM systems, distilled: evals are the highest-leverage work, prompts are code, and most 'agents' are really workflows.","https://applied-llms.org/"],
+  ["ai","How We Built Our Multi-Agent Research System","Anthropic","A planner-and-parallelizer architecture. The hard parts were tool design, coordination, and per-agent evals, not the model.","https://www.anthropic.com/engineering/multi-agent-research-system"],
+  ["ai","Hidden Technical Debt in Machine Learning Systems","Sculley et al. / Google","Why ML systems accrue maintenance cost faster than ordinary code.","https://proceedings.neurips.cc/paper_files/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf"],
+  ["ai","Measuring the Impact of AI on Developer Productivity","METR","A randomized trial where AI made experienced open-source devs 19% slower, while they believed it sped them up. The rigorous counterweight to the hype.","https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"],
+
+  // career: nature of the work → growing → positioning → working effectively → a gotcha
+  ["career","Programming as Theory Building","Peter Naur","A program is a theory living in the programmers' heads. Lose them and you lose the program.","https://pages.cs.wisc.edu/~remzi/Naur.pdf"],
   ["career","The Three Virtues of a Programmer","Larry Wall","Laziness, impatience, hubris.","https://threevirtues.dev/"],
   ["career","Teach Yourself Programming in Ten Years","Peter Norvig","Real expertise takes deliberate practice over years.","https://norvig.com/21-days.html"],
+  ["career","On Being A Senior Engineer","John Allspaw","Maturity, not just skill. What separates senior from merely experienced.","https://www.kitchensoap.com/2012/10/25/on-being-a-senior-engineer/"],
   ["career","Don't Call Yourself A Programmer","Patrick McKenzie","Frame yourself by business value, not technical activity.","https://web.archive.org/web/20140704202849/http://www.kalzumeus.com/2011/10/28/dont-call-yourself-a-programmer/"],
-  ["career","Maker's Schedule, Manager's Schedule","Paul Graham","Makers need half-day blocks; one meeting can blow an afternoon.","https://www.paulgraham.com/makersschedule.html"]
+  ["career","Salary Negotiation","Patrick McKenzie","Why every engineer should negotiate the offer, with the psychology and the actual scripts to do it.","https://www.kalzumeus.com/2012/01/23/salary-negotiation/"],
+  ["career","Maker's Schedule, Manager's Schedule","Paul Graham","Makers need half-day blocks; one meeting can blow an afternoon.","https://www.paulgraham.com/makersschedule.html"],
+  ["career","Falsehoods Programmers Believe About Time","Noah Sussman","Everything you wrongly assume about dates, clocks, and timezones.","https://infiniteundo.com/post/25326999628/falsehoods-programmers-believe-about-time"]
 ];
 
 /* ---------- helpers ---------- */
@@ -916,35 +1087,19 @@ function switchLang(l){
   buildTimeline();
   buildGlossary();
   buildNext();
-  updateCurveLabels();
-}
-
-function updateCurveLabels(){
-  const svg=document.getElementById("curveSvg");
-  if(!svg) return;
-  const stageKeyMap={innov:"stageInnov", early:"stageEarly", emaj:"stageEMaj", lmaj:"stageLMaj", lag:"stageLag"};
-  svg.querySelectorAll(".stage-name").forEach((el,i)=>{
-    const keys=Object.values(stageKeyMap);
-    if(i<keys.length) el.textContent=t(keys[i]);
-  });
-  // marker labels
-  const mkKeys={1:"chartAgile",2:"chartSOA",3:"chartCloud",4:"chartDevOps",5:"chartK8s",6:"chartMS",7:"chartML",8:"chartAI"};
-  svg.querySelectorAll(".mk-label").forEach(el=>{
-    const g=el.closest(".mk");
-    if(g&&g.dataset.num) el.textContent=t(mkKeys[g.dataset.num]);
-  });
-  // y-axis
-  const ya=svg.querySelector(".axis-y");
-  if(ya) ya.textContent=t("axisShare")+" →";
+  renderCurve();
 }
 
 /* ---------- curve ---------- */
-(function buildCurve(){
+let curveObserver=null, curveMobile=null;
+function renderCurve(){
   const W=1000,padX=64,padTop=58,baseY=372;
   const zMin=-3.2,zMax=3.2;
   const g=z=>Math.exp(-0.5*z*z);
   const X=z=>padX+(z-zMin)/(zMax-zMin)*(W-2*padX);
   const Y=z=>baseY-g(z)*(baseY-padTop);
+  const mobile=matchMedia("(max-width:560px)").matches;
+  curveMobile=mobile;
 
   let d="";
   for(let z=zMin;z<=zMax+1e-9;z+=0.04){d+=(d?"L":"M")+X(z).toFixed(1)+" "+Y(z).toFixed(1)+" ";}
@@ -963,20 +1118,38 @@ function updateCurveLabels(){
   bands.forEach(([k,a,b])=>{
     const cx=X((a+b)/2);
     const sname = lang==='zh' ? t(stageKeyMap[k]) : STAGES[k].name;
-    labels+=`<text class="stage-name" text-anchor="middle" x="${cx}" y="${baseY+26}" fill="${STAGES[k].color}">${esc(sname)}</text>`;
-    labels+=`<text class="stage-pct" text-anchor="middle" x="${cx}" y="${baseY+43}">${STAGES[k].pct}</text>`;
+    if(mobile){
+      const w=sname.split(" ");
+      const l1=w[0], l2=w.slice(1).join(" ");
+      labels+=`<text class="stage-name" text-anchor="middle" x="${cx}" y="${baseY+32}" fill="${STAGES[k].color}"><tspan x="${cx}">${esc(l1)}</tspan>${l2?`<tspan x="${cx}" dy="1.1em">${esc(l2)}</tspan>`:""}</text>`;
+      labels+=`<text class="stage-pct" text-anchor="middle" x="${cx}" y="${baseY+86}">${STAGES[k].pct}</text>`;
+    }else{
+      labels+=`<text class="stage-name" text-anchor="middle" x="${cx}" y="${baseY+26}" fill="${STAGES[k].color}">${esc(sname)}</text>`;
+      labels+=`<text class="stage-pct" text-anchor="middle" x="${cx}" y="${baseY+43}">${STAGES[k].pct}</text>`;
+    }
   });
 
   const SHORT_KEYS={1:"chartAgile",2:"chartSOA",3:"chartCloud",4:"chartDevOps",5:"chartK8s",6:"chartMS",7:"chartML",8:"chartAI"};
+  // stagger label heights by x-order so neighbouring labels never collide near the peak
+  const labelDy={};
+  [...ERAS].sort((a,b)=>a.z-b.z).forEach((e,i)=>{labelDy[e.num]=(i%2===0)?16:32;});
   let marks="";
   ERAS.forEach(e=>{
-    const x=X(e.z),y=Y(e.z),c=STAGES[e.stage].color,ly=y-16;
-    marks+=`<g class="mk" data-num="${e.num}">
-      <line class="lead" x1="${x}" y1="${(y-7).toFixed(1)}" x2="${x}" y2="${(ly+3).toFixed(1)}" stroke="${c}"/>
-      <circle class="dot" cx="${x}" cy="${y}" r="5.5" fill="${c}"/>
-      <text class="mk-label" x="${x}" y="${ly.toFixed(1)}" text-anchor="middle">${esc(t(SHORT_KEYS[e.num]))}</text>
-      <circle cx="${x}" cy="${y}" r="18" fill="transparent" class="hit" style="cursor:pointer"/>
-    </g>`;
+    const x=X(e.z),y=Y(e.z),c=STAGES[e.stage].color,ly=y-labelDy[e.num];
+    if(mobile){
+      marks+=`<g class="mk" data-num="${e.num}">
+        <circle class="dot" cx="${x}" cy="${y}" r="15" fill="${c}"/>
+        <text class="mk-num" x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central">${e.num}</text>
+        <circle cx="${x}" cy="${y}" r="26" fill="transparent" class="hit" style="cursor:pointer"/>
+      </g>`;
+    }else{
+      marks+=`<g class="mk" data-num="${e.num}">
+        <line class="lead" x1="${x}" y1="${(y-7).toFixed(1)}" x2="${x}" y2="${(ly+3).toFixed(1)}" stroke="${c}"/>
+        <circle class="dot" cx="${x}" cy="${y}" r="5.5" fill="${c}"/>
+        <text class="mk-label" x="${x}" y="${ly.toFixed(1)}" text-anchor="middle">${esc(t(SHORT_KEYS[e.num]))}</text>
+        <circle cx="${x}" cy="${y}" r="18" fill="transparent" class="hit" style="cursor:pointer"/>
+      </g>`;
+    }
   });
 
   const axis=`<line x1="${padX-8}" y1="${baseY}" x2="${W-padX+8}" y2="${baseY}" stroke="var(--line-strong)" stroke-width="1.5"/>`;
@@ -993,16 +1166,24 @@ function updateCurveLabels(){
     ${labels}
     ${marks}`;
 
+  const legend=document.getElementById("curveLegend");
+  if(legend){
+    legend.innerHTML=ERAS.map(e=>
+      `<span class="cl-item"><span class="cl-dot" style="background:${STAGES[e.stage].color}">${e.num}</span>${esc(t(SHORT_KEYS[e.num]))}</span>`
+    ).join("");
+  }
+
   const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
   const line=document.getElementById("curveLine");
   const len=line.getTotalLength();
   const area2=document.getElementById("curveArea");
+  if(curveObserver){curveObserver.disconnect();curveObserver=null;}
   if(reduce){
     document.querySelectorAll(".mk").forEach(m=>m.classList.add("in"));
   }else{
     line.style.strokeDasharray=len;line.style.strokeDashoffset=len;
     area2.style.opacity="0";
-    const io=new IntersectionObserver((ents,obs)=>{
+    curveObserver=new IntersectionObserver((ents,obs)=>{
       ents.forEach(en=>{if(!en.isIntersecting)return;
         line.style.transition="stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1)";
         line.style.strokeDashoffset="0";
@@ -1011,7 +1192,7 @@ function updateCurveLabels(){
         obs.disconnect();
       });
     },{threshold:.3});
-    io.observe(document.getElementById("curveSvg"));
+    curveObserver.observe(document.getElementById("curveSvg"));
   }
 
   const tip=document.getElementById("curveTip");
@@ -1034,7 +1215,8 @@ function updateCurveLabels(){
     m.addEventListener("mouseleave",()=>tip.style.opacity="0");
     m.addEventListener("click",()=>document.getElementById("timeline").scrollIntoView({behavior:"smooth"}));
   });
-})();
+}
+addEventListener("resize",()=>{ if(matchMedia("(max-width:560px)").matches!==curveMobile) renderCurve(); },{passive:true});
 
 /* ---------- timeline ---------- */
 function buildTimeline(){
@@ -1067,7 +1249,7 @@ function buildTimeline(){
         <p class="tl-desc">${esc(desc)}</p>
         ${quoteHtml}
       </div>
-      <div class="tl-track">${grid}${barWrap}</div>
+      <div class="tl-track">${grid}${barWrap}<div class="tl-scale"><span>${T0}</span><span>${T1}</span></div></div>
     </div>`;
   }).join("");
 
@@ -1131,7 +1313,7 @@ function buildNext(){
      dZh:"測試、評估和維運那些輸出永遠不會完全一樣的系統。"},
     {n:"N4",t:"Green IT & sustainability",tZh:"綠色 IT 與永續性",
      d:"The energy and carbon cost of compute moving from a footnote to a design constraint.",
-     dZh:"運算的能源和碳成本從備註變成了設計限制。"},
+     dZh:"運算的能源和碳成本，從無關緊要的小事，變成了真正的設計限制。"},
     {n:"N5",t:"The unknown unknowns",tZh:"未知的未知",
      d:"The most important prediction is admitting what practitioners have not yet identified as critical. The next twenty years live here.",
      dZh:"最重要的預測，是承認我們還沒看到什麼是關鍵。下一個二十年就在這裡。"}
@@ -1176,7 +1358,7 @@ function buildNext(){
     return `rgba(${c[0]},${c[1]},${c[2]},.05)`;
   }
 
-  let ticking=false;
+  let ticking=false, lastActive=-1;
   function frame(){
     ticking=false;
     const y=window.scrollY, vh=window.innerHeight;
@@ -1214,6 +1396,10 @@ function buildNext(){
     let active=-1;
     sections.forEach((s,i)=>{ if(s.getBoundingClientRect().top<=vh*0.34) active=i; });
     navLinks.forEach((a,i)=>a.classList.toggle("active",i===active));
+    if(active!==lastActive){
+      lastActive=active;
+      if(active>=0 && innerWidth<=680) navLinks[active].scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"});
+    }
   }
   function onScroll(){ if(!ticking){ticking=true; requestAnimationFrame(frame);} }
   addEventListener("scroll",onScroll,{passive:true});
@@ -1237,7 +1423,7 @@ function buildNext(){
   buildTimeline();
   buildGlossary();
   buildNext();
-  updateCurveLabels();
+  renderCurve();
 
   // glossary filter — set up once to avoid duplicate listeners on lang switch
   const glCount=document.getElementById("glCount");
